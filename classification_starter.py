@@ -237,6 +237,26 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+def key_feats(tree):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    returns:
+      a dictionary mapping 'contains-key-string' to whether an xml
+      contains a substring in one of its keys
+    """
+    c = Counter()
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            s = el.get(key)
+    return c
+
 def all_system_call_feats(tree):
     """
     arguments:
