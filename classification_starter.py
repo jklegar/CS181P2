@@ -277,9 +277,9 @@ def main():
      # TODO train here, and learn your classification parameters
     print "learning..."
     # learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
-    clf = MultinomialNB()
+    prior_list = [3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30]
+    clf = MultinomialNB(class_prior=prior_list)
     clf.fit(X_train,t_train)
-    MultinomialNB(class_prior=[3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30])
     print "done learning"
     print
     
