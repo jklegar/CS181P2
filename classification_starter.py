@@ -256,24 +256,42 @@ def main():
     print "done learning"
     print
     
-    # get rid of training data and load test data
-    del X_train
-    del t_train
-    del train_ids
     print "extracting test features..."
-    X_test,_,t_ignore,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict) # changed to train_dir from test_dir for testing purposes
+    X_test,_,t_validate,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict)
     print "done extracting test features"
     print
-    
-    # TODO make predictions on text data and write them out
+
     print "making predictions..."
     preds = np.argmax(X_test.dot(learned_W),axis=1)
     print "done making predictions"
     print
+
+    tot = len(preds)
+    correct = 0
+    for i in range(tot):
+        if preds[i] == t_validate[i]:
+            correct += 1
+    print "Fraction Correct: "
+    print correct * 1.0 / tot
+
+    # get rid of training data and load test data
+    # del X_train
+    # del t_train
+    # del train_ids
+    # print "extracting test features..."
+    # X_test,_,t_ignore,test_ids = extract_feats(ffs, test_dir, global_feat_dict=global_feat_dict)
+    # print "done extracting test features"
+    # print
     
-    print "writing predictions..."
-    util.write_predictions(preds, test_ids, outputfile)
-    print "done!"
+    # TODO make predictions on text data and write them out
+    # print "making predictions..."
+    # preds = np.argmax(X_test.dot(learned_W),axis=1)
+    # print "done making predictions"
+    # print
+    
+    # print "writing predictions..."
+    # util.write_predictions(preds, test_ids, outputfile)
+    # print "done!"
 
 if __name__ == "__main__":
     main()
