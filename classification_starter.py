@@ -104,11 +104,11 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
     classes = []
     ids = [] 
     if global_feat_dict == None:
-        endNum = 500
+        endNum = 1000
         startNum = 0
     else:
-        startNum = 501
-        endNum = 800
+        startNum = 1001
+        endNum = 1300
     for datafile in os.listdir(direc)[startNum:endNum]:
         # extract id and true class (if available) from filename
         id_str,clazz = datafile.split('.')[:2]
@@ -146,7 +146,7 @@ def make_design_mat(fds, global_feat_dict=None):
     """
     if global_feat_dict is None:
         all_feats = set()
-        [all_feats.update(fd.keys()) for fd in fds]
+        [all_feats.update(list(fd.keys())) for fd in fds]
         feat_dict = dict([(feat, i) for i, feat in enumerate(sorted(all_feats))])
     else:
         feat_dict = global_feat_dict
@@ -154,10 +154,10 @@ def make_design_mat(fds, global_feat_dict=None):
     cols = []
     rows = []
     data = []        
-    for i in xrange(len(fds)):
+    for i in range(len(fds)):
         temp_cols = []
         temp_data = []
-        for feat,val in fds[i].iteritems():
+        for feat,val in fds[i].items():
             try:
                 # update temp_cols iff update temp_data
                 temp_cols.append(feat_dict[feat])
@@ -238,14 +238,38 @@ def system_call_count_feats(tree):
     return c
 
 
+def common_key_strings(tree, i3, i4, i5):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    returns:
+      a list of the most common 3,4,5 element strings
+    """
+    c = [Counter() for i in range(3,6)]
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            s = el.get('key')
+            if s != None:
+                for j in range(3,6):
+                    for i in range(len(s) - j):
+                        c[j-3][s[i:i+j]] += 1
+    return c[0].most_common(i3), c[1].most_common(i4), c[2].most_common(i5)
+
 def key_feats(tree):
     """
     arguments:
       tree is an xml.etree.ElementTree object
     returns:
-      a dictionary mapping 'contains-key-string' to whether an xml
-      contains a substring in one of its keys
+      a dictionary mapping the most common 3,4,5 element substrings to the number of times they were listed
     """
+    l3, l4, l5 = common_key_strings(tree, 30, 0, 90)
+    #print(l3+l4+l5)
     c = Counter()
     in_all_section = False
     for el in tree.iter():
@@ -255,7 +279,11 @@ def key_feats(tree):
         elif el.tag == "all_section" and in_all_section:
             in_all_section = False
         elif in_all_section:
-            s = el.get(key)
+            s = el.get('key')
+            if s != None:
+                for wordtuple in l3+l4+l5:
+                    if wordtuple[0] in s:
+                        c[wordtuple[0]] += 1
     return c
 
 def all_system_call_feats(tree):
@@ -317,38 +345,38 @@ def main():
     ffs = [first_last_system_call_feats, system_call_count_feats]
     
     # extract features
-    print "extracting training features..."
+    print("extracting training features...")
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
-    print "done extracting training features"
-    print
+    print("done extracting training features")
+    print()
     
      # TODO train here, and learn your classification parameters
-    print "learning..."
+    print("learning...")
     # learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
     prior_list = [3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30]
     clf = MultinomialNB(class_prior=prior_list)
     clf.fit(X_train,t_train)
-    print "done learning"
-    print
+    print("done learning")
+    print()
     
-    print "extracting test features..."
+    print("extracting test features...")
     X_val,_,t_validate,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict)
-    print "done extracting test features"
-    print
+    print("done extracting test features")
+    print()
 
-    print "making predictions..."
+    print("making predictions...")
     preds = clf.predict(X_val)
-    print preds
-    print "done making predictions"
-    print
+    print(preds)
+    print("done making predictions")
+    print()
 
     tot = len(preds)
     correct = 0
     for i in range(tot):
         if preds[i] == t_validate[i]:
             correct += 1
-    print "Fraction Correct: "
-    print correct * 1.0 / tot
+    print("Fraction Correct: ")
+    print(correct * 1.0 / tot)
 
     # get rid of training data and load test data
     # del X_train
