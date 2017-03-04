@@ -77,6 +77,8 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 
+from sklearn.naive_bayes import MultinomialNB
+
 import util
 
 
@@ -253,7 +255,7 @@ def all_system_call_feats(tree):
         elif el.tag == "all_section" and in_all_section:
             in_all_section = False
         elif in_all_section:
-            ++c["call-"+el.tag]
+            c["call-"+el.tag] += 1
     
     return c
 
@@ -272,7 +274,7 @@ def main():
     print "done extracting training features"
     print
     
-    # TODO train here, and learn your classification parameters
+     # TODO train here, and learn your classification parameters
     print "learning..."
     # learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
     clf = MultinomialNB()
@@ -282,12 +284,13 @@ def main():
     print
     
     print "extracting test features..."
-    X_test,_,t_validate,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict)
+    X_val,_,t_validate,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict)
     print "done extracting test features"
     print
 
     print "making predictions..."
-    preds = np.argmax(X_test.dot(learned_W),axis=1)
+    preds = clf.predict(X_val)
+    print preds
     print "done making predictions"
     print
 
