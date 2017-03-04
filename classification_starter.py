@@ -101,8 +101,13 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
     fds = [] # list of feature dicts
     classes = []
     ids = [] 
-    testNum = 500
-    for datafile in os.listdir(direc)[0:testNum]:
+    if global_feat_dict == None:
+        endNum = 500
+        startNum = 0
+    else:
+        startNum = 501
+        endNum = 800
+    for datafile in os.listdir(direc)[startNum:endNum]:
         # extract id and true class (if available) from filename
         id_str,clazz = datafile.split('.')[:2]
         ids.append(id_str)
@@ -256,7 +261,7 @@ def main():
     del t_train
     del train_ids
     print "extracting test features..."
-    X_test,_,t_ignore,test_ids = extract_feats(ffs, test_dir, global_feat_dict=global_feat_dict)
+    X_test,_,t_ignore,test_ids = extract_feats(ffs, train_dir, global_feat_dict=global_feat_dict) # changed to train_dir from test_dir for testing purposes
     print "done extracting test features"
     print
     
