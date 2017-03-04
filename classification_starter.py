@@ -237,6 +237,7 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+
 def key_feats(tree):
     """
     arguments:
@@ -276,8 +277,35 @@ def all_system_call_feats(tree):
             in_all_section = False
         elif in_all_section:
             c["call-"+el.tag] += 1
+
+def mostcommoncalls(i):
+    def system_call_feats(tree):
+        """
+        arguments:
+          tree is an xml.etree.ElementTree object
+        returns:
+          a dictionary mapping 'call-x' to the number of times x was called
+        """
+        c = Counter()
+        in_all_section = False
+        first = True # is this the first system call
+        last_call = None # keep track of last call we've seen
+        for el in tree.iter():
+            # ignore everything outside the "all_section" element
+            if el.tag == "all_section" and not in_all_section:
+                in_all_section = True
+            elif el.tag == "all_section" and in_all_section:
+                in_all_section = False
+            elif in_all_section:
+                c["call-"+el.tag] += 1
+
+        c=c.most_common(i)        
+
+        return c
+
     
-    return c
+    return system_call_feats
+
 
 ## The following function does the feature extraction, learning, and prediction
 def main():
