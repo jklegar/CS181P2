@@ -235,6 +235,28 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+def all_system_call_feats(tree):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    returns:
+      a dictionary mapping 'call-x' to the number of times x was called
+    """
+    c = Counter()
+    in_all_section = False
+    first = True # is this the first system call
+    last_call = None # keep track of last call we've seen
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            ++c["call-"+el.tag]
+    
+    return c
+
 ## The following function does the feature extraction, learning, and prediction
 def main():
     train_dir = "train"
@@ -252,7 +274,10 @@ def main():
     
     # TODO train here, and learn your classification parameters
     print "learning..."
-    learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
+    # learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
+    clf = MultinomialNB()
+    clf.fit(X_train,t_train)
+    MultinomialNB(class_prior=[3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30])
     print "done learning"
     print
     
